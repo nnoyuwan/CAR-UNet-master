@@ -6,6 +6,7 @@ from attention_module import *
 
 def CARUNet(input_size=(512, 512, 3), start_neurons=16, keep_prob=0.8, block_size=7, lr=1e-3):
     inputs = Input(input_size)
+    # contract path
     conv1 = residual_drop_block(inputs, start_neurons * 1, False, block_size=block_size, keep_prob=keep_prob)
     conv1 = RCAB(conv1, keep_prob=keep_prob, block_size=block_size)
     pool1 = MaxPooling2D((2, 2))(conv1)
@@ -18,9 +19,11 @@ def CARUNet(input_size=(512, 512, 3), start_neurons=16, keep_prob=0.8, block_siz
     conv3 = RCAB(conv3, keep_prob=keep_prob, block_size=block_size)
     pool3 = MaxPooling2D((2, 2))(conv3)
 
+    # bottom
     convm = residual_drop_block(pool3, start_neurons * 8, False, block_size=block_size, keep_prob=keep_prob)
     convm = RCAB(convm, keep_prob=keep_prob, block_size=block_size)
 
+    # expansive path
     deconv3 = Conv2DTranspose(start_neurons * 4, (3, 3), strides=(2, 2), padding="same")(convm)
     uconv3 = concatenate([deconv3, meca_block(conv3)])
 
